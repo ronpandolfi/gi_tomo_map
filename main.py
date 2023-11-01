@@ -6,7 +6,7 @@ import scipy
 from matplotlib import pyplot as plt
 
 # This script uses a single 2d luminosity map (phantom_map.png) as a phantom domain map. The luminosity values
-# correspond to different domain orientations, and should be understood to be cycle around 0-255 (representing 0-180).
+# correspond to different domain orientations, and should be understood to be cyclic around 0-255 (representing 0-180).
 
 # The outputs of this script are matplotlib images showing:
 # 1) Domain maps separated by domain angle
