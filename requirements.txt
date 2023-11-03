@@ -1,0 +1,4 @@
+numpy
+scipy
+alive_progress
+matplotlib
