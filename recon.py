@@ -16,4 +16,4 @@ def sirt(sinogram, projection_operator, num_iterations=10, inverse_operator=None
         else:
             x_rec += C @ (projection_operator.T @ (R @ (sinogram.ravel() - projection_operator @ x_rec)))
 
-    return x_rec.reshape(projection_operator.shape[2:])
+    return x_rec
