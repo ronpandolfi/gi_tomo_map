@@ -3,16 +3,19 @@ import scipy
 from PIL import Image
 from alive_progress import alive_it, config_handler
 from matplotlib import pyplot as plt
+from recon import sirt
 
-# This script uses a single 2d luminosity map (phantom_map.png) as a phantom domain map. The luminosity values
-# correspond to different domain orientations, and should be understood to be cyclic around 0-255 (representing 0-180).
+"""
+This script uses a single 2d luminosity map (phantom_map.png) as a phantom domain map. The luminosity values
+correspond to different domain orientations, and should be understood to be cyclic around 0-255 (representing 0-180).
 
-# The outputs of this script are matplotlib images showing:
-# 1) Domain maps separated by domain angle
-# 2) Sinograms generated with GI geometry via projection operator
-# 3) Reconstructions of the original domain maps (1)
+The outputs of this script are matplotlib images showing:
+1) Domain maps separated by domain angle
+2) Sinograms generated with GI geometry via projection operator
+3) Reconstructions of the original domain maps (1)
 
-# NOTE: this synthetic data ignores that the bragg condition (and exclusion rules) would create phi gaps
+NOTE: this synthetic data ignores that the bragg condition (and exclusion rules) would create phi gaps
+"""
 
 config_handler.set_global(force_tty=True, max_cols=200, bar='filling')
 
@@ -121,9 +124,17 @@ if __name__ == '__main__':
 
     # Reconstruct the original domain orientation maps
     recon = {}
-    for angle, sino in alive_it(domain_sinograms_projection_operator.items(), title='Calculating reconstructions'):
-        # recon[angle] = sirt(sino, projection_operator)
-        recon[angle] = scipy.sparse.linalg.lsqr(projection_operator, sino.ravel())[0].reshape(map_size, map_size)
+    recon_mode = 'sirt'  # either 'lsqr' or 'sirt'
+    for angle, sino in alive_it(domain_sinograms_projection_operator.items(),
+                                title='Calculating reconstructions',
+                                disable=recon_mode == 'sirt'):
+        if recon_mode == 'lsqr':
+            recon[angle] = scipy.sparse.linalg.lsqr(projection_operator, sino.ravel())[0].reshape(map_size, map_size)
+        elif recon_mode == 'sirt':
+            print(f'Reconstructing @ angle={angle}')
+            recon[angle] = sirt(sino, projection_operator).reshape(map_size, map_size)
+        else:
+            raise ValueError('Invalid recon_mode')
 
     # Show reconstructions
     for angle, domain_recon in recon.items():
