@@ -37,8 +37,7 @@ if __name__ == '__main__':
         plt.imshow(domain_map,interpolation='nearest')
         plt.show()
 
-    # if treating this a as direct 2d projection...
-    map_3d = map.reshape(1, *map.shape)
+    # if treating this as a direct 2d projection...
     thetas = tomopy.angles(360, 0, 360)
     sinos = {angle: tomopy.project(domain_map.reshape(1, *domain_map.shape), thetas, center=None, emission=True, pad=True) for angle, domain_map in domain_maps.items()}
 
@@ -88,3 +87,23 @@ if __name__ == '__main__':
         plt.ylabel('ϕ')
         plt.imshow(sino)
         plt.show()
+
+    recons = {angle: np.squeeze(tomopy.recon(sino.reshape(sino.shape[0], 1, sino.shape[1]), thetas, algorithm='fbp')) for angle, sino in domain_sinograms.items()}
+    # recon = tomopy.circ_mask(recon, axis=0, ratio=0.95)
+
+    for angle, recon in recons.items():
+        plt.title(f'Reconstruction @ Domain Angle: {angle} deg')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.imshow(np.squeeze(recon))
+        plt.show()
+
+    recon_stack = np.stack(list(recons.values()))
+    normalized_recon_stack = [recon/np.max(recon) for recon in recon_stack]
+    recon_max_index = np.squeeze(np.argmax(normalized_recon_stack, axis=0))
+
+    plt.title('Domain Angle with Highest Reconstruction Value')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.imshow(recon_max_index)
+    plt.show()
